@@ -30,7 +30,7 @@ The following people have contributed to this new version:
  Lorenzo Moneta, CERN/EP-SFT,\
  Alja Mrak Tadel, UCSD/CMS,\
  Axel Naumann, CERN/EP-SFT,\
- Vincenzo Eduardo Padulano, CERN/EP-SFT,\
+ Vincenzo Padulano, CERN/EP-SFT,\
  Danilo Piparo, CERN/EP-SFT,\
  Fons Rademakers, CERN/IT,\
  Jonas Rembser, CERN/EP-SFT,\
@@ -41,11 +41,6 @@ The following people have contributed to this new version:
 ## Deprecation and Removal
 - The RooFit legacy iterators are deprecated and will be removed in ROOT 6.34 (see section "RooFit libraries")
 - Some memory-unsafe RooFit interfaces were removed
-- Some redundant **RooDataSet** constructors are deprecated and will be removed in ROOT 6.34.
-  Please use the RooDataSet constructors that take RooFit command arguments instead
-- ROOT does not longer support Python 2. The minimum required Python version to build ROOT is 3.8.
-- Support for wildcard imports like `from ROOT import *` is dropped from PyROOT
-- Support for external (ie. non-builtin) libAfterImage is now deprecated and it will be removed in next release 6.34.
 
 ## Core Libraries
 
@@ -72,23 +67,8 @@ This grabs all the root files in subdirectories that have a name starting with `
 
 ## Math Libraries
 
-## Parallelism
-  - The ROOT::Experimental::TFuture template has been removed.
 
 ## RooFit Libraries
-
-### New CPU likelihood evaluation backend by default
-
-The new vectorizing CPU evaluation backend is not the default for RooFit likelihoods.
-Likelihood minimization is now up to 10x faster on a single CPU core.
-
-If you experience unexpected problems related to the likelihood evaluation, you
-can revert back to the old backend by passing `RooFit::EvalBackend("legacy")`
-to `RooAbsPdf::fitTo()` or `RooAbsPdf::createNLL()`.
-
-In case you observe any slowdowns with the new likelihood evaluation, please
-open a GitHub issue about this, as such a performance regression is considered
-a bug.
 
 ### Compile your code with memory safe interfaces
 
@@ -184,22 +164,6 @@ They should be replaced with the suitable STL-compatible interfaces, or you can 
 
 - `RooWorkspace::componentIterator()`: use `RooWorkspace::components()` with range-based loop
 
-### Deprecation of legacy test statistics classes in public interface
-
-Instantiating the following classes and even including their header files is deprecated, and the headers will be removed in ROOT 6.34:
-
-* RooAbsTestStatistic
-* RooAbsOptTestStatistic
-* RooNLLVar
-* RooChi2Var
-* RooXYChi2Var
-
-Please use the higher-level functions `RooAbsPdf::createNLL()` and `RooAbsPdf::createChi2()` if you want to create objects that represent test statistics.
-
-## RDataFrame
-
-* The RDataFrame constructors that take in input one or more file names (or globs thereof) will now infer the format of the dataset, either TTree or RNTuple, that is stored in the first input file. When multiple files are specified, it is assumed that all other files contain a coherent dataset of the same format and with the same schema, exactly as it used to happen with TChain. This automatic inference further contributes towards a zero-code-change experience when moving from processing a TTree to processing an RNTuple dataset while using an RDataFrame. It also introduces a backwards-incompatible behaviour, i.e. now the constructor needs to open one file in order to infer the dataset type. This means that if the file does not exist, the constructor will throw an exception. Previously, an exception would be thrown only at a JIT-ting time, before the start of the computations.
-
 ## 2D Graphics Libraries
 
 
@@ -223,48 +187,6 @@ Please use the higher-level functions `RooAbsPdf::createNLL()` and `RooAbsPdf::c
 
 ## PROOF Libraries
 
-
-## PyROOT
-
-
-### Rebase of PyROOT on the current cppyy
-
-PyROOT was rebased on the latest version of the [cppyy library](https://cppyy.readthedocs.io/en/latest/).
-This means PyROOT benefits from many upstream improvements and fixes, for example related to the conversion of NumPy arrays to vectors, implicit conversion from nested Python tuples to nested initializer lists, and improved overload resolution.
-
-Related to this cppyy upgrade, there is one change in PyROOT behavior.
-A static size character buffer of type `char[n]` is not converted to a Python string anymore. 
-The reason for this: since it was previously assumed the string was
-null-terminated, there was no way to get the bytes after a `null`, even if you
-wanted to.
-
-```
-import ROOT
-
-ROOT.gInterpreter.Declare("""
-struct Struct { char char_buffer[5] {}; }; // struct with char[n]
-void fill_char_buffer(Struct & st) {
-    std::string foo{"foo"};
-    std::memcpy(st.char_buffer, foo.data(), foo.size());
-}
-""")
-
-struct = ROOT.Struct()
-ROOT.fill_char_buffer(struct)
-char_buffer = struct.char_buffer
-
-# With thew new cppyy, you get access to the lower level buffer instead of a
-# Python string:
-print("struct.char_buffer            : ", char_buffer)
-
-# However, you can turn the buffer into a string very easily with as_string():
-print("struct.char_buffer.as_string(): ", char_buffer.as_string())
-```
-The output of this script with ROOT 6.32:
-```
-struct.char_buffer            :  <cppyy.LowLevelView object at 0x74c7a2682fb0>
-struct.char_buffer.as_string():  foo
-```
 
 ## Language Bindings
 

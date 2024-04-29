@@ -4,11 +4,9 @@
 #include <RtypesCore.h> // for Double32_t
 #include <TRootIOCtor.h>
 
-#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <random>
 #include <string>
 #include <variant>
 #include <vector>
@@ -204,46 +202,6 @@ struct StructWithIORules : StructWithIORulesBase {
 
    StructWithIORules() = default;
    StructWithIORules(float _a, char _c[4]) : StructWithIORulesBase{_a, 0.0f}, s{{_c[0], _c[1], _c[2], _c[3]}, {}} {}
-};
-
-struct Cyclic {
-   std::vector<Cyclic> fMember;
-};
-
-struct Unsupported {
-   float a;
-   std::chrono::time_point<std::chrono::system_clock> timestamp;
-   float b;
-   std::random_device rd;
-   float z;
-};
-
-struct BaseA {
-   float a = 0.0;
-};
-
-struct DiamondVirtualB : virtual public BaseA {
-   float b = 0.0;
-};
-
-struct DiamondVirtualC : virtual public BaseA {
-   float c = 0.0;
-};
-
-struct DiamondVirtualD : public DiamondVirtualB, public DiamondVirtualC {
-   float d = 0.0;
-};
-
-struct DuplicateBaseB : public BaseA {
-   float b = 0.0;
-};
-
-struct DuplicateBaseC : public BaseA {
-   float c = 0.0;
-};
-
-struct DuplicateBaseD : public DuplicateBaseB, public DuplicateBaseC {
-   float d = 0.0;
 };
 
 #endif
